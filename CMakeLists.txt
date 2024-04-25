@@ -24,6 +24,7 @@ find_package( NetCDF REQUIRED COMPONENTS Fortran )
 add_subdirectory(src)
 add_subdirectory(test)
 
+
 ## Finalise configuration
 # prepares a tar.gz of the sources and/or binaries
 ecbuild_install_project( NAME crtm )
@@ -31,3 +32,5 @@ ecbuild_install_project( NAME crtm )
 # print the summary of the configuration
 ecbuild_print_summary()
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/cdash-integration.cmake)
+include(CTest)
