@@ -32,5 +32,5 @@ ecbuild_install_project( NAME crtm )
 # print the summary of the configuration
 ecbuild_print_summary()
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/cdash-integration.cmake)
+#include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/cdash-integration.cmake)
 include(CTest)
