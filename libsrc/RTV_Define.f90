@@ -54,6 +54,7 @@ MODULE RTV_Define
   PUBLIC :: MAX_N_SOI_ITERATIONS
   ! Datatypes
   PUBLIC :: aircraft_rt_type
+  PUBLIC :: obs_4_downward_type
   PUBLIC :: RTV_type
   ! Procedures
   PUBLIC :: RTV_Associated
@@ -97,6 +98,12 @@ MODULE RTV_Define
     INTEGER :: idx
   END TYPE aircraft_rt_type  
 
+  TYPE :: obs_4_downward_type
+    ! The switch
+    LOGICAL :: rt = .FALSE.
+    ! The output level index
+    INTEGER :: idx
+  END TYPE obs_4_downward_type 
   ! --------------------------------------
   ! Structure definition to hold forward
   ! variables across FWD, TL, and AD calls
@@ -154,7 +161,7 @@ MODULE RTV_Define
     
     ! Aircraft model RT information
     TYPE(aircraft_rt_type) :: aircraft
-
+    TYPE(obs_4_downward_type) :: obs_4_downward
     ! Scattering, visible model variables    
     INTEGER :: n_Streams         = 0       ! Number of *hemispheric* stream angles used in RT    
     INTEGER :: mth_Azi                     ! mth fourier component
@@ -200,11 +207,22 @@ MODULE RTV_Define
 
     REAL(fp), ALLOCATABLE :: s_Level_Refl_UP(:,:,:)   ! MAX_N_ANGLES, MAX_N_ANGLES, 0:MAX_N_LAYERS
     REAL(fp), ALLOCATABLE :: s_Level_Rad_UP(:,:)      ! MAX_N_ANGLES, 0:MAX_N_LAYERS
-     
+!    REAL(fp), ALLOCATABLE :: s_Level_Rad_DOWN(:,:)      ! MAX_N_ANGLES, 0:MAX_N_LAYERS
+!    REAL(fp), ALLOCATABLE :: s_Level_Rad_DOWNT(:,:)      ! MAX_N_ANGLES, 0:MAX_N_LAYERS
+ 
+         
     REAL(fp), ALLOCATABLE :: s_Layer_Source_UP(:,:)   ! MAX_N_ANGLES, MAX_N_LAYERS
     REAL(fp), ALLOCATABLE :: s_Layer_Source_DOWN(:,:) ! MAX_N_ANGLES, MAX_N_LAYERS
-
-
+!
+    REAL(fp), ALLOCATABLE :: Inv_Gamma2(:,:,:)         ! MAX_N_ANGLES, MAX_N_ANGLES, MAX_N_LAYERS
+    REAL(fp), ALLOCATABLE :: Inv_Gamma2T(:,:,:)        ! MAX_N_ANGLES, MAX_N_ANGLES, MAX_N_LAYERS
+    REAL(fp), ALLOCATABLE :: Inv_Gamma3(:,:,:)         ! MAX_N_ANGLES, MAX_N_ANGLES, MAX_N_LAYERS
+    REAL(fp), ALLOCATABLE :: s_Level_Rad_UPT(:,:)      ! MAX_N_ANGLES, 0:MAX_N_LAYERS
+    REAL(fp), ALLOCATABLE :: s_Level_Refl_DOWN(:,:,:)   ! MAX_N_ANGLES, MAX_N_ANGLES, 0:MAX_N_LAYERS
+    REAL(fp), ALLOCATABLE :: s_Level_Refl_DOWNT(:,:,:)   ! MAX_N_ANGLES, MAX_N_ANGLES, 0:MAX_N_LAYERS
+    REAL(fp), ALLOCATABLE :: s_Level_Rad_DOWN(:,:)      ! MAX_N_ANGLES, 0:MAX_N_LAYERS
+    REAL(fp), ALLOCATABLE :: s_Level_Rad_DOWNT(:,:)      ! MAX_N_ANGLES, 0:MAX_N_LAYERS
+    REAL(fp), ALLOCATABLE :: Refl_Trans_DOWN(:,:,:)        ! MAX_N_ANGLES, MAX_N_ANGLES, MAX_N_LAYERS
     !------------------------------------
     ! Variables used in the AMOM routines
     !------------------------------------
@@ -437,6 +455,15 @@ CONTAINS
               RTV%s_Level_Rad_UP(n_Angles, 0:n_Layers)           , &
               RTV%s_Layer_Source_UP(  n_Angles, n_Layers)        , &
               RTV%s_Layer_Source_DOWN(n_Angles, n_Layers)        , &
+              RTV%s_Level_Rad_UPT(n_Angles, 0:n_Layers)           , &              
+              RTV%s_Level_Rad_DOWN(n_Angles, 0:n_Layers)           , &     
+              RTV%s_Level_Refl_DOWN(n_Angles, n_Angles, 0:n_Layers), &    
+              RTV%s_Level_Refl_DOWNT(n_Angles, n_Angles, 0:n_Layers), &   
+              RTV%s_Level_Rad_DOWNT(n_Angles, 0:n_Layers)          , &                                
+              RTV%Inv_Gamma2( n_Angles, n_Angles, n_Layers)       , &
+              RTV%Inv_Gamma2T(n_Angles, n_Angles, n_Layers)       , &
+              RTV%Inv_Gamma3( n_Angles, n_Angles, n_Layers)       , &              
+              RTV%Refl_Trans_DOWN(n_Angles, n_Angles, n_Layers)       , &  
               STAT = alloc_stat )
     IF ( alloc_stat /= 0 ) RETURN
 
