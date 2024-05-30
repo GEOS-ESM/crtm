@@ -1,0 +1,5 @@
+
+1. Build crtm library
+   cd libsrc
+   rm *.o *.mod
+   
