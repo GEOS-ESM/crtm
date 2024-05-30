@@ -83,6 +83,7 @@ CONTAINS
     !         refl: reflection, up: upward, down: downward                !
     ! --------------------------------------------------------------------!
     REAL (fp), DIMENSION(RTV%n_Angles, RTV%n_Angles) :: temporal_matrix
+    REAL (fp), DIMENSION(RTV%n_Angles) :: temporal_vector
     REAL (fp), DIMENSION( RTV%n_Angles, n_Layers) :: refl_down 
     REAL (fp), DIMENSION(0:n_Layers) :: total_opt
     INTEGER :: i, j, k, Error_Status
@@ -198,7 +199,132 @@ CONTAINS
          RTV%s_Level_Rad_UP(i,0)=RTV%s_Level_Rad_UP(i,0)+sum(RTV%s_Level_Refl_UP(i,1:RTV%n_Angles,0))*cosmic_background
        ENDDO
     END IF
+!
+  IF(RTV%aircraft%rt.or.RTV%obs_4_downward%rt) THEN
+!
+! Added, May 20, 2024
+!  except at TOA, RTV%s_Level_Rad_UP is "intermediate" value, the following part for final vertical profiles of radiance
+! 
+!  Downward, finalize s_Level_Rad_UPT and s_Level_Rad_DOWNT
+    RTV%s_Level_Rad_UPT(:,0) = RTV%s_Level_Rad_UP(:,0)
+    IF( RTV%mth_Azi == 0 ) THEN
+       DO i = 1, RTV%n_Angles 
+         RTV%s_Level_Rad_DOWN(i,0)=cosmic_background
+         RTV%s_Level_Rad_DOWNT(i,0)=cosmic_background
+       ENDDO
+    END IF
+    RTV%s_Level_Refl_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,0) = ZERO
 
+  DO 20 k = 1, n_Layers
+
+    ! Compute tranmission and reflection matrices for a layer
+   IF(w(k) > SCATTERING_ALBEDO_THRESHOLD) THEN 
+
+    !  ----------------------------------------------------------- !
+    !    Adding method to add the layer to the present level       !
+    !    to compute upward radiances and reflection matrix         !
+    !    at new level.                                             !
+    !  ----------------------------------------------------------- !
+
+    temporal_matrix = -matmul(RTV%s_Level_Refl_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k-1),  &
+                       RTV%s_Layer_Refl(1:RTV%n_Angles,1:RTV%n_Angles,k) )
+    DO i = 1, RTV%n_Angles 
+      temporal_matrix(i,i) = ONE + temporal_matrix(i,i)
+    END DO
+
+    RTV%Inv_Gamma2(1:RTV%n_Angles,1:RTV%n_Angles,k) = matinv(temporal_matrix, Error_Status)
+    IF( Error_Status /= SUCCESS  ) THEN
+      WRITE( Message,'("Error in matrix inversion matinv in Inv_Gamma2 ")' ) 
+      CALL Display_Message( ROUTINE_NAME,  &                                                    
+                            TRIM(Message), &                                                   
+                            Error_Status   )                                          
+      RETURN                                                                                    
+    END IF
+         
+    RTV%Inv_Gamma2T(1:RTV%n_Angles,1:RTV%n_Angles,k) =   &
+     matmul(RTV%s_Layer_Trans(1:RTV%n_Angles,1:RTV%n_Angles,k), RTV%Inv_Gamma2(1:RTV%n_Angles,1:RTV%n_Angles,k))
+
+    refl_down(1:RTV%n_Angles,k) = matmul(RTV%s_Level_Refl_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k-1),  &
+                                  RTV%s_Layer_Source_UP(1:RTV%n_Angles,k))
+
+    RTV%s_Level_Rad_DOWN(1:RTV%n_Angles,k)=RTV%s_Layer_Source_DOWN(1:RTV%n_Angles,k)+ &
+    matmul(RTV%Inv_Gamma2T(1:RTV%n_Angles,1:RTV%n_Angles,k),refl_down(1:RTV%n_Angles,k) &
+          +RTV%s_Level_Rad_DOWN(1:RTV%n_Angles,k-1))
+ 
+    RTV%Refl_Trans_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k) = &
+           matmul(RTV%s_Level_Refl_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k-1), &
+           RTV%s_Layer_Trans(1:RTV%n_Angles,1:RTV%n_Angles,k))
+    RTV%s_Level_Refl_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k)=RTV%s_Layer_Refl(1:RTV%n_Angles,1:RTV%n_Angles,k) + &
+    matmul(RTV%Inv_Gamma2T(1:RTV%n_Angles,1:RTV%n_Angles,k),RTV%Refl_Trans_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k)) 
+
+   ELSE
+      ! Adding method for absorption layer, no solar diffuse radiation for no scattering layer
+      DO i = 1, RTV%n_Angles 
+        RTV%s_Level_Rad_DOWN(i,k)=RTV%s_Layer_Source_DOWN(i,k)+ &
+        RTV%s_Layer_Trans(i,i,k)*(sum(RTV%s_Level_Refl_DOWN(i,1:RTV%n_Angles,k-1)*RTV%s_Layer_Source_UP(1:RTV%n_Angles,k))  &
+         +RTV%s_Level_Rad_DOWN(i,k-1))
+      ENDDO
+ 
+      DO i = 1, RTV%n_Angles 
+        DO j = 1, RTV%n_Angles 
+          RTV%s_Level_Refl_DOWN(i,j,k)=RTV%s_Layer_Trans(i,i,k)*RTV%s_Level_Refl_DOWN(i,j,k-1)*RTV%s_Layer_Trans(j,j,k)
+        ENDDO
+      ENDDO
+
+
+      temporal_vector = matmul(RTV%s_Level_Refl_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k-1),RTV%s_Level_Rad_UP(1:RTV%n_Angles,k) )
+      RTV%s_Level_Rad_UPT(1:RTV%n_Angles,k)= temporal_vector + RTV%s_Level_Rad_UP(1:RTV%n_Angles,k)      
+
+      temporal_vector = matmul(RTV%s_Level_Refl_UP(1:RTV%n_Angles,1:RTV%n_Angles,k), &
+           RTV%s_Level_Rad_DOWN(1:RTV%n_Angles,k))
+      RTV%s_Level_Rad_UPT(1:RTV%n_Angles,k) = temporal_vector + RTV%s_Level_Rad_UP(1:RTV%n_Angles,k)
+   ENDIF
+
+!
+!  finalize upward and downward radiance  s_Level_Rad_UPT, s_Level_Rad_DOWNT
+!
+   IF( maxval(abs(RTV%s_Level_Refl_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k))) > ZERO) THEN
+     temporal_matrix = -matmul(RTV%s_Level_Refl_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k),  &
+                     RTV%s_Level_Refl_UP(1:RTV%n_Angles,1:RTV%n_Angles,k))
+     DO i = 1, RTV%n_Angles 
+       temporal_matrix(i,i) = ONE + temporal_matrix(i,i)
+     END DO
+
+     RTV%Inv_Gamma3(1:RTV%n_Angles,1:RTV%n_Angles,k) = matinv(temporal_matrix, Error_Status)
+     IF( Error_Status /= SUCCESS  ) THEN
+       WRITE( Message,'("Error in matrix inversion matinv in Inv_Gamma3 ")' ) 
+       CALL Display_Message( ROUTINE_NAME,  &                                                    
+                            TRIM(Message), &                                                   
+                            Error_Status   )                                          
+       RETURN                                                                                    
+     END IF
+     RTV%s_Level_Rad_DOWNT(1:RTV%n_Angles,k)= matmul( RTV%Inv_Gamma3(1:RTV%n_Angles,1:RTV%n_Angles,k), &
+      matmul(RTV%s_Level_Refl_DOWN(1:RTV%n_Angles,1:RTV%n_Angles,k),RTV%s_Level_Rad_UP(1:RTV%n_Angles,k) ) &
+      + RTV%s_Level_Rad_DOWN(1:RTV%n_Angles,k) )
+
+     temporal_vector = matmul(RTV%Inv_Gamma3(1:RTV%n_Angles,1:RTV%n_Angles,k),RTV%s_Level_Rad_DOWN(1:RTV%n_Angles,k))
+     RTV%s_Level_Rad_UPT(1:RTV%n_Angles,k)= matmul(RTV%s_Level_Refl_UP(1:RTV%n_Angles,1:RTV%n_Angles,k),temporal_vector) &
+       + matmul(RTV%Inv_Gamma3(1:RTV%n_Angles,1:RTV%n_Angles,k),RTV%s_Level_Rad_UP(1:RTV%n_Angles,k))    
+  ELSE
+     RTV%s_Level_Rad_DOWNT(1:RTV%n_Angles,k)= RTV%s_Level_Rad_DOWN(1:RTV%n_Angles,k)
+     RTV%s_Level_Rad_UPT(1:RTV%n_Angles,k) = &
+      matmul(RTV%s_Level_Refl_UP(1:RTV%n_Angles,1:RTV%n_Angles,k),RTV%s_Level_Rad_DOWN(1:RTV%n_Angles,k)) &
+       + RTV%s_Level_Rad_UP(1:RTV%n_Angles,k)
+  END IF
+    
+  20 CONTINUE
+  RTV%s_Level_Rad_DOWN = RTV%s_Level_Rad_DOWNT
+  RTV%s_Level_Rad_UP = RTV%s_Level_Rad_UPT
+ END IF
+ 
+!   print *,' check ',RTV%aircraft%rt,RTV%s_Level_Rad_DOWNT(2,80),RTV%s_Level_Rad_DOWN(2,80), &
+!     RTV%s_Level_Rad_UPT(2,80),RTV%s_Level_Rad_UP(2,80)
+!  j = 1
+!  DO k = 0, n_Layers
+!    write(60,'(I5,4E14.5)') k, RTV%s_Level_Rad_UP(j,k), RTV%s_Level_Rad_UPT(j,k), &
+!      RTV%s_Level_Rad_DOWN(j,k), RTV%s_Level_Rad_DOWNT(j,k)      
+!  END DO
+!  IF(k > 0) STOP
     RETURN
     
   END SUBROUTINE CRTM_ADA 
