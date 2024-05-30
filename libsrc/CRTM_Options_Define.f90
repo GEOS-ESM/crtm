@@ -140,7 +140,7 @@ MODULE CRTM_Options_Define
     ! Aircraft flight level pressure
     ! Value > 0 turns "on" the aircraft option
     REAL(Double) :: Aircraft_Pressure = -ONE
-
+    REAL(Double) :: Obs_4_downward_P = -ONE
     ! User defined number of RT solver streams (streams up + streams down)
     LOGICAL       :: Use_n_Streams = .FALSE.
     INTEGER(Long) :: n_Streams = 0
