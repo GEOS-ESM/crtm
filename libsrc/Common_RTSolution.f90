@@ -1120,7 +1120,11 @@ CONTAINS
       ELSE
         Radiance = RTV%s_Level_Rad_UP(SfcOptics%Index_Sat_Ang, 0)
       END IF
-    
+
+      ! Assign radiance output from ADA or SOI
+      IF ( RTV%obs_4_downward%rt ) THEN
+        Radiance = RTV%s_Level_Rad_DOWN(SfcOptics%Index_Sat_Ang, RTV%obs_4_downward%idx)
+      END IF    
     ! Emission specific assignments
     ELSE       
       
@@ -1129,6 +1133,10 @@ CONTAINS
         Radiance = RTV%e_Level_Rad_UP(RTV%aircraft%idx)
       ELSE
         Radiance = RTV%e_Level_Rad_UP(0)
+      END IF 
+
+      IF ( RTV%obs_4_downward%rt ) THEN
+        Radiance = RTV%e_Level_Rad_DOWN(RTV%obs_4_downward%idx)
       END IF 
 
       ! Other emission-only output
