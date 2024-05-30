@@ -616,24 +616,6 @@ CONTAINS
       CALL CRTM_Compute_SurfaceT( Surface(m), SfcOptics )
 
 
-      ! Process aircraft pressure altitude
-      IF ( Opt%Aircraft_Pressure > ZERO ) THEN
-        RTV%aircraft%rt = .TRUE.
-        RTV%aircraft%idx = CRTM_Get_PressureLevelIdx(Atm, Opt%Aircraft_Pressure)
-        ! ...Issue warning if profile level is TOO different from flight level
-        IF ( ABS(Atm%Level_Pressure(RTV%aircraft%idx)-Opt%Aircraft_Pressure) > AIRCRAFT_PRESSURE_THRESHOLD ) THEN
-          WRITE( Message,'("Difference between aircraft pressure level (",es22.15,&
-                          &"hPa) and closest input profile level (",es22.15,&
-                          &"hPa) is larger than recommended (",f4.1,"hPa) for profile #",i0)') &
-                          Opt%Aircraft_Pressure, Atm%Level_Pressure(RTV%aircraft%idx), &
-                          AIRCRAFT_PRESSURE_THRESHOLD, m
-          CALL Display_Message( ROUTINE_NAME, Message, WARNING )
-        END IF
-      ELSE
-        RTV%aircraft%rt = .FALSE.
-      END IF
-
-
 
 
       ! -----------
@@ -694,6 +676,42 @@ CONTAINS
           RTV%RT_Algorithm_Id = Opt%RT_Algorithm_Id
         END IF
 
+
+      ! Process aircraft pressure altitude
+      IF ( Opt%Aircraft_Pressure > ZERO ) THEN
+        RTV%aircraft%rt = .TRUE.
+        RTV%aircraft%idx = CRTM_Get_PressureLevelIdx(Atm, Opt%Aircraft_Pressure)
+        ! ...Issue warning if profile level is TOO different from flight level
+        IF ( ABS(Atm%Level_Pressure(RTV%aircraft%idx)-Opt%Aircraft_Pressure) > AIRCRAFT_PRESSURE_THRESHOLD ) THEN
+          WRITE( Message,'("Difference between aircraft pressure level (",es22.15,&
+                          &"hPa) and closest input profile level (",es22.15,&
+                          &"hPa) is larger than recommended (",f4.1,"hPa) for profile #",i0)') &
+                          Opt%Aircraft_Pressure, Atm%Level_Pressure(RTV%aircraft%idx), &
+                          AIRCRAFT_PRESSURE_THRESHOLD, m
+          CALL Display_Message( ROUTINE_NAME, Message, WARNING )
+        END IF
+      ELSE
+        RTV%aircraft%rt = .FALSE.
+      END IF
+
+
+      ! Process observing downward radiance, Obs_4_downward_P = ZERO means at surface
+      !  Obs_4_downward_P > ZERO, sensor at the pressure
+      IF ( Opt%Obs_4_downward_P > ZERO ) THEN
+        RTV%Obs_4_downward%rt = .TRUE.
+        RTV%Obs_4_downward%idx = CRTM_Get_PressureLevelIdx(Atm, Opt%Obs_4_downward_P)
+        ! ...Issue warning if profile level is TOO different from flight level
+        IF ( ABS(Atm%Level_Pressure(RTV%Obs_4_downward%idx)-Opt%Obs_4_downward_P) > AIRCRAFT_PRESSURE_THRESHOLD ) THEN
+          WRITE( Message,'("Difference between Obs pressure level (",es22.15,&
+                          &"hPa) and closest input profile level (",es22.15,&
+                          &"hPa) is larger than recommended (",f4.1,"hPa) for profile #",i0)') &
+                          Opt%Obs_4_downward_P, Atm%Level_Pressure(RTV%Obs_4_downward%idx), &
+                          AIRCRAFT_PRESSURE_THRESHOLD, m
+          CALL Display_Message( ROUTINE_NAME, Message, WARNING )
+        END IF
+      ELSE
+        RTV%Obs_4_downward%rt = .FALSE.
+      END IF
 
         ! Compute NLTE correction predictors
         IF ( Opt%Apply_NLTE_Correction ) THEN
