@@ -214,15 +214,15 @@ if(((CMAKE_BUILD_TYPE STREQUAL "Debug") OR (CMAKE_BUILD_TYPE STREQUAL "RelWithDe
   SET_SOURCE_FILES_PROPERTIES(RTSolution/ADA/ADA_Module.f90 APPEND_STRING PROPERTY COMPILE_FLAGS " -check none -check bounds,pointers,uninit")
 endif()
 
-#ecbuild_add_library(TARGET ${PROJECT_NAME} TYPE SHARED SOURCES ${${PROJECT_NAME}_src_files})
-ecbuild_add_library(TARGET ${PROJECT_NAME}_static TYPE STATIC SOURCES ${${PROJECT_NAME}_src_files})
+ecbuild_add_library(TARGET ${PROJECT_NAME} TYPE SHARED SOURCES ${${PROJECT_NAME}_src_files})
+#ecbuild_add_library(TARGET ${PROJECT_NAME}_static TYPE STATIC SOURCES ${${PROJECT_NAME}_src_files})
 
 #Dependencies
-#target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_Fortran)
-#target_link_libraries(${PROJECT_NAME} PUBLIC NetCDF::NetCDF_Fortran)
+target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_Fortran)
+target_link_libraries(${PROJECT_NAME} PUBLIC NetCDF::NetCDF_Fortran)
 
-target_link_libraries(${PROJECT_NAME}_static PUBLIC OpenMP::OpenMP_Fortran)
-target_link_libraries(${PROJECT_NAME}_static PUBLIC NetCDF::NetCDF_Fortran)
+#target_link_libraries(${PROJECT_NAME}_static PUBLIC OpenMP::OpenMP_Fortran)
+#target_link_libraries(${PROJECT_NAME}_static PUBLIC NetCDF::NetCDF_Fortran)
 
 #Fortran module output directory for build and install interfaces
 set(MODULE_DIR module/${PROJECT_NAME}/${CMAKE_Fortran_COMPILER_ID}/${CMAKE_Fortran_COMPILER_VERSION})
