@@ -441,9 +441,9 @@ CONTAINS
       END IF
     END IF
 
-    WRITE(6,*)
-    WRITE(6,'("   Using",i3," OpenMP threads =",i3," for profiles and",i3," for channels.")') &
-         n_omp_threads, n_profile_threads, n_channel_threads
+    !WRITE(6,*)
+    !WRITE(6,'("   Using",i3," OpenMP threads =",i3," for profiles and",i3," for channels.")') &
+         !n_omp_threads, n_profile_threads, n_channel_threads
 
     ! ------------
     ! PROFILE LOOPS
