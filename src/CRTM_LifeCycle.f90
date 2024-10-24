@@ -743,7 +743,7 @@ CONTAINS
     IF (Default_SpcCoeff_Format == 'netCDF' ) THEN
         netCDF = .TRUE.
     END IF
-    WRITE(*,*) "Loading "//TRIM(Default_SpcCoeff_Format)//" spectral coefficients."
+!   WRITE(*,*) "Loading "//TRIM(Default_SpcCoeff_Format)//" spectral coefficients."
     err_stat = CRTM_SpcCoeff_Load( &
                  Sensor_ID                            , &
                  File_Path         = File_Path        , &
@@ -762,7 +762,7 @@ CONTAINS
     IF (Default_TauCoeff_Format == 'netCDF' ) THEN
         netCDF = .TRUE.
     END IF
-    WRITE(*,*) "Loading "//TRIM(Default_TauCoeff_Format)//" transmittance coefficients."
+!   WRITE(*,*) "Loading "//TRIM(Default_TauCoeff_Format)//" transmittance coefficients."
     err_stat = CRTM_Load_TauCoeff( &
                  Sensor_ID         = Sensor_ID        , &
                  File_Path         = File_Path        , &
@@ -786,7 +786,7 @@ CONTAINS
         IF ( PRESENT(File_Path) ) Default_File_Path = File_Path
       END IF
       ! Default_CloudCoeff_File = TRIM(ADJUSTL(Default_File_Path)) // TRIM(Default_CloudCoeff_File)
-      WRITE(*, '("Loading cloud coefficients: ", a) ') TRIM(Default_CloudCoeff_File)
+!     WRITE(*, '("Loading cloud coefficients: ", a) ') TRIM(Default_CloudCoeff_File)
       err_stat = CRTM_CloudCoeff_Load( &
                    Default_Cloud_Model                  , &
                    Default_CloudCoeff_File              , &
@@ -813,7 +813,7 @@ CONTAINS
         IF ( PRESENT(File_Path) ) Default_File_Path = File_Path
       END IF
       ! Default_AerosolCoeff_File = TRIM(ADJUSTL(Default_File_Path)) // TRIM(Default_AerosolCoeff_File)
-      WRITE(*, '("Loading aerosol coefficients: ", a) ') TRIM(Default_AerosolCoeff_File)
+!     WRITE(*, '("Loading aerosol coefficients: ", a) ') TRIM(Default_AerosolCoeff_File)
       err_stat = CRTM_AerosolCoeff_Load( &
                    Default_Aerosol_Model                , &
                    Default_AerosolCoeff_File            , &
@@ -841,7 +841,7 @@ CONTAINS
         netCDF = .FALSE.
         IF ( PRESENT(File_Path) ) Default_File_Path = File_Path
       END IF
-      WRITE(*, '("Loading IR land emissivity coefficients: ", a) ') TRIM(Default_IRlandCoeff_File)
+!     WRITE(*, '("Loading IR land emissivity coefficients: ", a) ') TRIM(Default_IRlandCoeff_File)
       err_stat = CRTM_IRlandCoeff_Load( &
                    Default_IRlandCoeff_File, &
                    File_Path         = Default_File_Path, &
@@ -862,7 +862,7 @@ CONTAINS
         netCDF = .FALSE.
         IF ( PRESENT(File_Path) ) Default_File_Path = File_Path
       END IF
-      WRITE(*, '("Loading IR water emissivity coefficients: ", a) ') TRIM(Default_IRwaterCoeff_File)
+!     WRITE(*, '("Loading IR water emissivity coefficients: ", a) ') TRIM(Default_IRwaterCoeff_File)
       err_stat = CRTM_IRwaterCoeff_Load( &
                    Default_IRwaterCoeff_File, &
                    netCDF            = netCDF           , &
@@ -888,7 +888,7 @@ CONTAINS
       ELSE
         isSEcategory = .FALSE.
       END IF
-      WRITE(*, '("Loading IR snow emissivity coefficients: ", a) ')  TRIM(Default_IRsnowCoeff_File)
+!     WRITE(*, '("Loading IR snow emissivity coefficients: ", a) ')  TRIM(Default_IRsnowCoeff_File)
       err_stat = CRTM_IRsnowCoeff_Load( &
                    Default_IRsnowCoeff_File, &
                    netCDF            = netCDF           , &
@@ -910,7 +910,7 @@ CONTAINS
         netCDF = .FALSE.
         IF ( PRESENT(File_Path) ) Default_File_Path = File_Path
       END IF
-      WRITE(*, '("Loading IR ice emissivity coefficients: ", a) ') TRIM(Default_IRiceCoeff_File)
+!     WRITE(*, '("Loading IR ice emissivity coefficients: ", a) ') TRIM(Default_IRiceCoeff_File)
       err_stat = CRTM_IRiceCoeff_Load( &
                    Default_IRiceCoeff_File, &
                    netCDF            = netCDF           , &
@@ -935,7 +935,7 @@ CONTAINS
         netCDF = .FALSE.
         IF ( PRESENT(File_Path) ) Default_File_Path = File_Path
       END IF
-      WRITE(*, '("Loading VIS land emissivity coefficients: ", a) ') TRIM(Default_VISlandCoeff_File)
+!     WRITE(*, '("Loading VIS land emissivity coefficients: ", a) ') TRIM(Default_VISlandCoeff_File)
       err_stat = CRTM_VISlandCoeff_Load( &
                    Default_VISlandCoeff_File, &
                    netCDF            = netCDF           , &
@@ -956,7 +956,7 @@ CONTAINS
         netCDF = .FALSE.
         IF ( PRESENT(File_Path) ) Default_File_Path = File_Path
       END IF
-      WRITE(*, '("Loading VIS water emissivity coefficients: ", a) ') TRIM(Default_VISwaterCoeff_File)
+!     WRITE(*, '("Loading VIS water emissivity coefficients: ", a) ') TRIM(Default_VISwaterCoeff_File)
       err_stat = CRTM_VISwaterCoeff_Load( &
                    Default_VISwaterCoeff_File, &
                    netCDF            = netCDF           , &
@@ -977,7 +977,7 @@ CONTAINS
         netCDF = .FALSE.
         IF ( PRESENT(File_Path) ) Default_File_Path = File_Path
       END IF
-      WRITE(*, '("Loading VIS snow emissivity coefficients: ", a) ') TRIM(Default_VISsnowCoeff_File)
+!     WRITE(*, '("Loading VIS snow emissivity coefficients: ", a) ') TRIM(Default_VISsnowCoeff_File)
       err_stat = CRTM_VISsnowCoeff_Load( &
                    Default_VISsnowCoeff_File, &
                    netCDF            = netCDF           , &
@@ -998,7 +998,7 @@ CONTAINS
         netCDF = .FALSE.
         IF ( PRESENT(File_Path) ) Default_File_Path = File_Path
       END IF
-      WRITE(*, '("Loading VIS ice emissivity coefficients: ", a) ') TRIM(Default_VISiceCoeff_File)
+!     WRITE(*, '("Loading VIS ice emissivity coefficients: ", a) ') TRIM(Default_VISiceCoeff_File)
       err_stat = CRTM_VISiceCoeff_Load( &
                    Default_VISiceCoeff_File, &
                    netCDF            = netCDF           , &
@@ -1014,7 +1014,7 @@ CONTAINS
     END IF Visible_Sensor
 
     ! ...Microwave
-    WRITE(*, '("Loading MW water emissivity coefficients: ", a) ') TRIM(Default_MWwaterCoeff_File)
+!   WRITE(*, '("Loading MW water emissivity coefficients: ", a) ') TRIM(Default_MWwaterCoeff_File)
     Microwave_Sensor: IF ( ANY(SpcCoeff_IsMicrowaveSensor(SC)) ) THEN
       ! ...MW water
       err_stat = CRTM_MWwaterCoeff_Load( &
